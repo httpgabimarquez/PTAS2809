@@ -1,29 +1,27 @@
 const crypto = require('crypto');
 const express = require('express');
 const app = express();
+const bcrypt = require ('bcryptjs');
 
-app.listen(3000, function() {
+app.use(express.json());
+
+app.listen(3004, function() {
     console.log('App de Exemplo executando na porta 3000!')
-  });
+});
 
-const chaveSecreta = 'ChaveSuperSecreta';
-const textoOriginal = 'Minha informação confidencial';
-
-const cipher = crypto.createCipher('aes-256-cbc', chaveSecreta);
-let textoCriptografado = cipher.update(textoOriginal, 'utf8', 'hex');
-textoCriptografado += cipher.final('hex');
-
-app.get('/criptografia', (req, res) => {
-    res.send('Texto criptografado' + textoCriptografado);
+//* criacao de nova senha
+app.post('/criptografia', async (req, res) => {
+    const {senha} = req.body; 
+    const novaSenha = await bcrypt.hash (senha, 10)
+    res.send('Nova senha' + novaSenha);
  })
 
-const descipher = crypto.createDecipher('aes-256-cbc', chaveSecreta);
-let textoDescriptografado = descipher.update(textoCriptografado, 'hex', 'utf8');
-textoDescriptografado += descipher.final('utf8');
-
-app.get('/descriptografia', (req, res) =>{
-    res.send('Texto Descriptografado' + textoDescriptografado);
+//* compara a senha gerada com a senha atual
+app.post('/descriptografia', async (req, res) =>{
+    const {senha, novaSenha} = req.body;
+    const compare = await bcrypt.compare(senha, novaSenha);
+    res.send('Senha verificada' + compare);
   })
 
-console.log('Texto Criptografado:', textoCriptografado);
+
 
